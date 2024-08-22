@@ -24,14 +24,15 @@ fi
 
 # INFO: Clone repository
 
-cd ~ || exit
+cd "$HOME" || exit
 
 if [ ! -d "ansible-server" ]; then
   echo -e "\n🚀 Cloning repository..."
   git clone https://github.com/mimukit/ansible-server.git
 fi
 
-# INFO: Run ansible playbook
+# INFO: Print ansible playbook run command
 
-echo -e "\n🚀 Running Ansible playbook..."
-cd ~/ansible-server && ansible-playbook -i hosts setup-server.yml
+echo -e "\n🚀 Run the following command to execute the Ansible playbook:"
+
+echo -e "\n\ncd ~/ansible-server && ansible-playbook -i hosts setup-server.yml"
