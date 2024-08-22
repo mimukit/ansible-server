@@ -102,6 +102,12 @@
         path: "{{ dotfiles_dir }}"
         state: absent
 
+    - name: Open Zsh and source .zshrc to install plugins
+      shell: |
+        zsh -c "source ~/.zshrc"
+      args:
+        executable: /bin/zsh
+
   handlers:
     - name: update apt cache
       apt:
