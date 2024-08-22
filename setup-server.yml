@@ -35,6 +35,7 @@
           - eza
           - git
           - neovim
+          - nodejs
           - python3.12-venv
           - ripgrep
           - tmux
