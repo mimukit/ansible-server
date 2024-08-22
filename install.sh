@@ -35,4 +35,4 @@ fi
 # INFO: Run ansible playbook
 
 echo -e "\n🚀 Running Ansible playbook..."
-ansible-playbook playbook.yml
+ansible-playbook setup-server.yml
