@@ -17,9 +17,14 @@
         update_cache: yes
         upgrade: dist
 
+    - name: Check if nodesource is present in APT sources
+      shell: grep -r "nodesource" /etc/apt/sources.list /etc/apt/sources.list.d/
+      register: nodesource_check
+      ignore_errors: yes
+
     - name: Add Node.js repository
       shell: curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
-      when: ansible_os_family == 'Debian'
+      when: nodesource_check.rc != 0
 
     - name: Install required packages
       apt:
