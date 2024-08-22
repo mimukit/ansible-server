@@ -129,3 +129,5 @@
 
     - name: install fzf
       shell: "{{ ansible_env.HOME }}/.fzf/install --all"
+    - name: Open Neovim and synchronize plugins using LazyVim
+      command: nvim --headless +"Lazy sync" +qa
