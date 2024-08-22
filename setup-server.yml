@@ -1,0 +1,121 @@
+---
+- name: Setup Server
+  hosts: all
+  become: true
+
+  vars:
+    dotfiles_repo: https://github.com/mimukit/dotfiles.git
+    dotfiles_dir: "{{ ansible_env.HOME }}/dotfiles"
+    zshrc_source: "{{ dotfiles_dir }}/dot_zshrc"
+    starship_config_source: "{{ dotfiles_dir }}/dot_config/starship/"
+    tmux_config_source: "{{ dotfiles_dir }}/dot_config/tmux/"
+    nvim_config_source: "{{ dotfiles_dir }}/dot_config/nvim/"
+
+  tasks:
+    - name: Update and upgrade the system
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Add Node.js repository
+      shell: curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+      when: ansible_os_family == 'Debian'
+
+    - name: Install required packages
+      apt:
+        name:
+          - software-properties-common
+          - build-essential
+          - bat
+          - btop
+          - curl
+          - eza
+          - git
+          - neovim
+          - python3.12-venv
+          - ripgrep
+          - tmux
+          - tree
+          - unzip
+          - zsh
+        state: present
+
+    - name: Clone dotfiles repository
+      git:
+        repo: "{{ dotfiles_repo }}"
+        dest: "{{ dotfiles_dir }}"
+      when: not ansible_os_family == 'Windows'
+
+    - name: Replace .zshrc with custom configuration
+      copy:
+        src: "{{ zshrc_source }}"
+        dest: "{{ ansible_env.HOME }}/.zshrc"
+        force: yes
+      notify: restart zsh
+      when: zshrc_source is file
+
+    - name: Install Starship prompt
+      shell: curl -sS https://starship.rs/install.sh | sh -s -- -y
+      args:
+        creates: /usr/local/bin/starship
+
+    - name: Copy Starship configuration
+      copy:
+        src: "{{ starship_config_source }}"
+        dest: "{{ ansible_env.HOME }}/.config/starship/"
+        force: yes
+      when: starship_config_source is directory
+
+    - name: Copy tmux configuration
+      copy:
+        src: "{{ tmux_config_source }}"
+        dest: "{{ ansible_env.HOME }}/.config/tmux"
+        force: yes
+      when: tmux_config_source is directory
+
+    - name: Clone Tmux Plugin Manager
+      git:
+        repo: https://github.com/tmux-plugins/tpm
+        dest: "{{ ansible_env.HOME }}/.tmux/plugins/tpm"
+      when: not ansible_os_family == 'Windows'
+      notify: install tmux plugins
+
+    - name: Clone and install fzf
+      git:
+        repo: https://github.com/junegunn/fzf.git
+        dest: "{{ ansible_env.HOME }}/.fzf"
+      notify: install fzf
+      when: not ansible_os_family == 'Windows'
+
+    - name: Copy Neovim configuration
+      copy:
+        src: "{{ nvim_config_source }}"
+        dest: "{{ ansible_env.HOME }}/.config/nvim"
+        force: yes
+      when: nvim_config_source is directory
+
+    - name: Remove dotfiles directory
+      file:
+        path: "{{ dotfiles_dir }}"
+        state: absent
+
+  handlers:
+    - name: update apt cache
+      apt:
+        update_cache: yes
+
+    - name: restart zsh
+      shell: exec zsh
+      when: not ansible_os_family == 'Windows'
+
+    - name: install tmux plugins
+      shell: >
+        tmux start-server &&
+        tmux new-session -d &&
+        tmux source ~/.config/tmux/tmux.conf &&
+        ~/.tmux/plugins/tpm/bin/install_plugins &&
+        tmux kill-server
+      when: not ansible_os_family == 'Windows'
+
+    - name: install fzf
+      shell: "{{ ansible_env.HOME }}/.fzf/install --all"
