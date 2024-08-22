@@ -3,6 +3,7 @@
   hosts: all
   become: true
 
+  # INFO: Define variables
   vars:
     dotfiles_repo: https://github.com/mimukit/dotfiles.git
     dotfiles_dir: "{{ ansible_env.HOME }}/dotfiles"
@@ -11,6 +12,29 @@
     tmux_config_source: "{{ dotfiles_dir }}/dot_config/tmux/"
     nvim_config_source: "{{ dotfiles_dir }}/dot_config/nvim/"
 
+  # INFO: Define handlers
+  handlers:
+    - name: update apt cache
+      apt:
+        update_cache: yes
+
+    - name: restart zsh
+      shell: exec zsh
+      when: not ansible_os_family == 'Windows'
+
+    - name: install tmux plugins
+      shell: >
+        tmux start-server &&
+        tmux new-session -d &&
+        tmux source ~/.config/tmux/tmux.conf &&
+        ~/.tmux/plugins/tpm/bin/install_plugins &&
+        tmux kill-server
+      when: not ansible_os_family == 'Windows'
+
+    - name: install fzf
+      shell: "{{ ansible_env.HOME }}/.fzf/install --all"
+
+  # INFO: Define tasks
   tasks:
     - name: Update and upgrade the system
       apt:
@@ -109,25 +133,5 @@
       args:
         executable: /bin/zsh
 
-  handlers:
-    - name: update apt cache
-      apt:
-        update_cache: yes
-
-    - name: restart zsh
-      shell: exec zsh
-      when: not ansible_os_family == 'Windows'
-
-    - name: install tmux plugins
-      shell: >
-        tmux start-server &&
-        tmux new-session -d &&
-        tmux source ~/.config/tmux/tmux.conf &&
-        ~/.tmux/plugins/tpm/bin/install_plugins &&
-        tmux kill-server
-      when: not ansible_os_family == 'Windows'
-
-    - name: install fzf
-      shell: "{{ ansible_env.HOME }}/.fzf/install --all"
     - name: Open Neovim and synchronize plugins using LazyVim
       command: nvim --headless +"Lazy sync" +qa
