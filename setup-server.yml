@@ -24,8 +24,6 @@
     - name: Install required packages
       apt:
         name:
-          - software-properties-common
-          - build-essential
           - bat
           - btop
           - curl
