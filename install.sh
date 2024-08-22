@@ -31,8 +31,7 @@ if [ ! -d "ansible-server" ]; then
   git clone https://github.com/mimukit/ansible-server.git
 fi
 
-# INFO: Print ansible playbook run command
+# INFO: Run ansible playbook
 
-echo -e "\n🚀 Run the following command to execute the Ansible playbook:"
-
-echo -e "\n\ncd ~/ansible-server && ansible-playbook -i hosts setup-server.yml"
+echo -e "\n🚀 Running Ansible playbook..."
+ansible-playbook -i "$HOME"/ansible-server/hosts "$HOME"/ansible-server/setup-server.yml
